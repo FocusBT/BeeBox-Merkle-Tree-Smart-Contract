@@ -112,12 +112,20 @@ contract BeeBox {
         }
         
         
-        for(uint i = 0; i < 10; i++){
+        for(uint i = 1; i < 10; i++){
             uint[] memory NextLevelReffs = new uint[](getCurrentLevelLength(CurrLevelReffs));
-
-            for(uint j = 0; j < NextLevelReffs.length ; j++){
-
+            uint temp;
+            for(uint j = 0; j < getCurrentLevelLength(CurrLevelReffs) ; j++){
+                
+                for(uint k = 0; k < Referrals[CurrLevelReffs[j]].length; k++){
+                    NextLevelReffs[temp] = Referrals[CurrLevelReffs[j]][k];
+                    UserBalanceByAddr[ReferralToAddress[NextLevelReffs[temp]]] += (SelectedPackage[msg.sender] * getRewardPercentage(uint8(i+1))) / 100;
+                    temp++;
+                }
             }
+            temp = 0;
+            delete CurrLevelReffs;
+            CurrLevelReffs = NextLevelReffs;
         }
         
         
@@ -178,6 +186,7 @@ contract BeeBox {
 
             referralAwardToLevels();
         }
+        return true;
     }
 
     
