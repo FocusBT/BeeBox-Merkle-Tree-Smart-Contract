@@ -93,10 +93,7 @@ contract BeeBox {
     mapping(uint => address) public ReferralToAddress;
     mapping(address => uint) public UsersReferralCodes;
     mapping(address => uint) public UserBalanceByAddr;
-    mapping(uint => uint[]) public Referrals;
     mapping(address => uint) public ReferredBy;
-    mapping(address => uint) public SelectedPackage;
-    mapping(address => uint) public TotalProfit;
 
     constructor() {
         owner = msg.sender;
@@ -104,40 +101,19 @@ contract BeeBox {
         // Token = IERC20(tokenAddress);
     }
 
-    function referralAwardToLevels(address addr) public {
-        uint[] memory CurrLevelReffs = new uint[](Referrals[UsersReferralCodes[addr]].length);
-
-        for(uint i = 0; i < Referrals[UsersReferralCodes[addr]].length; i++) {
-            UserBalanceByAddr[ReferralToAddress[CurrLevelReffs[i]]] += (SelectedPackage[msg.sender] * getRewardPercentage(1)) / 100;
-        }
-        
-        
-        for(uint i = 1; i < 10; i++){
-            uint[] memory NextLevelReffs = new uint[](getCurrentLevelLength(CurrLevelReffs));
-            uint temp;
-            for(uint j = 0; j < getCurrentLevelLength(CurrLevelReffs) ; j++){
-                
-                for(uint k = 0; k < Referrals[CurrLevelReffs[j]].length; k++){
-                    NextLevelReffs[temp] = Referrals[CurrLevelReffs[j]][k];
-                    UserBalanceByAddr[ReferralToAddress[NextLevelReffs[temp]]] += (SelectedPackage[msg.sender] * getRewardPercentage(uint8(i+1))) / 100;
-                    temp++;
-                }
-            }
-            temp = 0;
-            delete CurrLevelReffs;
-            CurrLevelReffs = NextLevelReffs;
+    function referralAwardToLevels() internal {
+        uint curr = ReferredBy[msg.sender];
+        for(uint i = 1; i <= 10; i++){
+            uint reward = (UserBalanceByAddr[msg.sender] * getRewardPercentage(uint8(i))) / 100;
+            UserBalanceByAddr[ReferralToAddress[curr]] += reward;
+            curr = ReferredBy[ReferralToAddress[curr]];
+            if(curr == 0) break;
         }
         
         
     }
 
-    function getCurrentLevelLength(uint[] memory reffs) view public returns(uint){
-        uint count;
-        for(uint i = 0; i < reffs.length; i++){
-            count += Referrals[reffs[i]].length;
-        }
-        return count;
-    }
+    
 
     function getRewardPercentage(uint8 level) internal pure returns (uint) {
         if (level == 1) return 6;
@@ -158,11 +134,9 @@ contract BeeBox {
             amount <= 5000 && amount >= 100,
             "You can not deposit more than $5000 and less than $100"
         );
-        // require(msg.sender != owner, "Owner can not join pool");
         // Token.transferFrom(msg.sender, address(this), amount * 10 ** 6); // transfering tokens to contract
         if (UsersReferralCodes[msg.sender] != 0) {
-            UserBalanceByAddr[msg.sender] += amount * 10 ** 6;
-            SelectedPackage[msg.sender] += amount * 10 ** 6;
+            UserBalanceByAddr[msg.sender] += amount * 10 ** 18;
         } else {
             require(
                 ReferralToAddress[reffCode] != address(0),
@@ -179,12 +153,12 @@ contract BeeBox {
             }
 
             UserBalanceByAddr[msg.sender] = amount * 10 ** 6; // setting balance with 6 zeros at the end
-            SelectedPackage[msg.sender] = UserBalanceByAddr[msg.sender];
             // -- adding increments to inviter stats -- //
-            Referrals[reffCode].push(UsersReferralCodes[msg.sender]); // pushing current user referral code to the referral's array
             ReferredBy[msg.sender] = reffCode; // setting referral code
-
-            referralAwardToLevels(ReferralToAddress[reffCode]);
+            if(reffCode != 0){
+                referralAwardToLevels();
+            }
+            
         }
         return true;
     }
