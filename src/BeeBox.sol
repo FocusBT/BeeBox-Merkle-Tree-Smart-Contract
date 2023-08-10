@@ -98,16 +98,16 @@ contract BeeBox {
     mapping(address => uint) public SelectedPackage;
     mapping(address => uint) public TotalProfit;
 
-    constructor(address tokenAddress) {
+    constructor() {
         owner = msg.sender;
         ReferralToAddress[0] = msg.sender;
-        Token = IERC20(tokenAddress);
+        // Token = IERC20(tokenAddress);
     }
 
-    function referralAwardToLevels() public {
-        uint[] memory CurrLevelReffs = new uint[](Referrals[UsersReferralCodes[msg.sender]].length);
+    function referralAwardToLevels(address addr) public {
+        uint[] memory CurrLevelReffs = new uint[](Referrals[UsersReferralCodes[addr]].length);
 
-        for(uint i = 0; i < Referrals[UsersReferralCodes[msg.sender]].length; i++) {
+        for(uint i = 0; i < Referrals[UsersReferralCodes[addr]].length; i++) {
             UserBalanceByAddr[ReferralToAddress[CurrLevelReffs[i]]] += (SelectedPackage[msg.sender] * getRewardPercentage(1)) / 100;
         }
         
@@ -158,8 +158,8 @@ contract BeeBox {
             amount <= 5000 && amount >= 100,
             "You can not deposit more than $5000 and less than $100"
         );
-        require(msg.sender != owner, "Owner can not join pool");
-        Token.transferFrom(msg.sender, address(this), amount * 10 ** 6); // transfering tokens to contract
+        // require(msg.sender != owner, "Owner can not join pool");
+        // Token.transferFrom(msg.sender, address(this), amount * 10 ** 6); // transfering tokens to contract
         if (UsersReferralCodes[msg.sender] != 0) {
             UserBalanceByAddr[msg.sender] += amount * 10 ** 6;
             SelectedPackage[msg.sender] += amount * 10 ** 6;
@@ -184,7 +184,7 @@ contract BeeBox {
             Referrals[reffCode].push(UsersReferralCodes[msg.sender]); // pushing current user referral code to the referral's array
             ReferredBy[msg.sender] = reffCode; // setting referral code
 
-            referralAwardToLevels();
+            referralAwardToLevels(ReferralToAddress[reffCode]);
         }
         return true;
     }
