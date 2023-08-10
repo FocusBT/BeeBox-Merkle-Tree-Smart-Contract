@@ -88,17 +88,26 @@ contract BeeBox {
     address public owner;
     IERC20 private Token;
     uint[] private IDS;
+    address private allowed;
 
     // ALL MAPPINGS //
     mapping(uint => address) public ReferralToAddress;
     mapping(address => uint) public UsersReferralCodes;
     mapping(address => uint) public UserBalanceByAddr;
+    mapping(address => uint) public InvestedAmount;
     mapping(address => uint) public ReferredBy;
 
     constructor() {
         owner = msg.sender;
+        allowed = msg.sender;
         ReferralToAddress[0] = msg.sender;
+        UsersReferralCodes[msg.sender] = 0;
         // Token = IERC20(tokenAddress);
+    }
+
+    function changeAllowed(address _allowed) public {
+        require(msg.sender == owner, "You are not allowed to change allowed");
+        allowed = _allowed;
     }
 
     function referralAwardToLevels() internal {
@@ -109,18 +118,17 @@ contract BeeBox {
             curr = ReferredBy[ReferralToAddress[curr]];
             if(curr == 0) break;
         }
-        
-        
     }
 
+    
     
 
     function getRewardPercentage(uint8 level) internal pure returns (uint) {
         if (level == 1) return 6;
         if (level == 2) return 4;
-        if (level >= 3 && level <= 6) return 2;
-        if (level >= 7 && level <= 9) return 1;
-        if (level == 10) return 1;
+        if (level == 3) return 4;
+        if (level >= 4 && level <= 7) return 2;
+        if (level >= 8 && level <= 10) return 1;
         return 0; // Default to 0% for unsupported levels
     }
 
@@ -136,7 +144,8 @@ contract BeeBox {
         );
         // Token.transferFrom(msg.sender, address(this), amount * 10 ** 6); // transfering tokens to contract
         if (UsersReferralCodes[msg.sender] != 0) {
-            UserBalanceByAddr[msg.sender] += amount * 10 ** 18;
+            UserBalanceByAddr[msg.sender] += amount * 10 ** 6;
+            InvestedAmount[msg.sender] += amount * 10 ** 6;
         } else {
             require(
                 ReferralToAddress[reffCode] != address(0),
@@ -147,6 +156,7 @@ contract BeeBox {
             if (ReferralToAddress[generatedReffCode] == address(0)) {
                 UsersReferralCodes[msg.sender] = generatedReffCode;
                 ReferralToAddress[generatedReffCode] = msg.sender;
+                InvestedAmount[msg.sender] = amount * 10 ** 6;
                 IDS.push(generatedReffCode);
             } else {
                 return false;
@@ -161,6 +171,20 @@ contract BeeBox {
             
         }
         return true;
+    }
+
+
+    function dailyROI() public {
+        require(msg.sender == allowed, "Invalid Actions");
+        for(uint i = 0; i < IDS.length; i++){
+            if(UserBalanceByAddr[ReferralToAddress[IDS[i]]] >= InvestedAmount[ReferralToAddress[IDS[i]]]*2){
+                UserBalanceByAddr[ReferralToAddress[IDS[i]]] = 0;
+                InvestedAmount[ReferralToAddress[IDS[i]]] = 0;
+            }else if(InvestedAmount[ReferralToAddress[IDS[i]]] != 0){
+                UserBalanceByAddr[ReferralToAddress[IDS[i]]] += (InvestedAmount[ReferralToAddress[IDS[i]]] * 5) / 1000;
+            }
+            
+        }
     }
 
     
