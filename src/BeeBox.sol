@@ -121,7 +121,6 @@ contract BeeBox {
     }
 
     
-    
 
     function getRewardPercentage(uint8 level) internal pure returns (uint) {
         if (level == 1) return 6;
