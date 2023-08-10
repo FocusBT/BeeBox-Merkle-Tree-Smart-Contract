@@ -451,31 +451,14 @@ contract ROI_POOL{
                 uint temper = ToBePaid;
                 ROIIncome[ReferralToAddress[IDS[i]]] += ToBePaid;
                 if(UsersLevel[ReferralToAddress[IDS[i]]]>0){
-                    tempVar = getAllReffs(ReferralToAddress[IDS[i]], false);
+                    tempVar = getAllReffs(ReferralToAddress[IDS[i]]);
                     ToBePaid += tempVar;
                     ROILevelIncome[ReferralToAddress[IDS[i]]] += tempVar;
                 }
-                tempVar = getAllReffs(ReferralToAddress[IDS[i]], true);
                 uint teamLength = getTeamLength(ReferralToAddress[IDS[i]]);
-                uint CurrClub = getClubLevel(tempVar, teamLength, ReferralToAddress[IDS[i]]);
                 teamLength = ToBePaid;   // total profit and balance
                 temper = ToBePaid;
-                if(CurrClub != club[ReferralToAddress[IDS[i]]]){
-                    updateClub(ReferralToAddress[IDS[i]]);
-                }
-                if(club[ReferralToAddress[IDS[i]]] != 0){
-                    if(club[ReferralToAddress[IDS[i]]] == 1 && club1 >= Totalclub1){
-                        teamLength += club1 / Totalclub1;
-                        TotalEarnedFromClub1[ReferralToAddress[IDS[i]]] += club1 / Totalclub1;
-                    }else if(club[ReferralToAddress[IDS[i]]] == 2 && club2 >= Totalclub2){
-                        teamLength += club2 / Totalclub2;
-                        TotalEarnedFromClub2[ReferralToAddress[IDS[i]]] += club2 / Totalclub2;
-                    }else if(club[ReferralToAddress[IDS[i]]] == 3 && club3 >= Totalclub3){
-                        teamLength += club3 / Totalclub3;
-                        TotalEarnedFromClub3[ReferralToAddress[IDS[i]]] += club3 / Totalclub3;
-                    }
-                    TotalEarnedFromClubs[ReferralToAddress[IDS[i]]] += ToBePaid - temper;
-                }
+                
                 TotalProfit[ReferralToAddress[IDS[i]]] += teamLength;
                 UserBalanceByAddr[ReferralToAddress[IDS[i]]] += teamLength;
             }
@@ -492,7 +475,7 @@ contract ROI_POOL{
 
  
     
-    function getAllReffs(address addr, bool getWorth) public view returns(uint) {
+    function getAllReffs(address addr) public view returns(uint) {
         uint[] memory CurrLevelReffs = new uint[](Referrals[UsersReferralCodes[addr]].length);
         uint[] memory tempArr = new uint[](Referrals[UsersReferralCodes[addr]].length);
         uint[] memory AmountToBePaid = new uint[](UsersLevel[addr]+1);
@@ -512,21 +495,12 @@ contract ROI_POOL{
         
         if(UsersLevel[addr] >= 1){
             for(uint i = 0; i < Referrals[UsersReferralCodes[addr]].length; i++){
-                if(getWorth == true){
-                    uint a = UsersReferralCodes[addr];
-                    uint b = Referrals[a][i];
-                    address c = ReferralToAddress[b];
-                    AmountToBePaid[i+1] += ((UserBalanceByAddr[c] + TotalWithdraw[c]) - TotalProfit[c]);
-                }else{
-                    AmountToBePaid[0] += SelectedPackage[ReferralToAddress[Referrals[UsersReferralCodes[addr]][i]]];
-                }
-                
+                AmountToBePaid[0] += SelectedPackage[ReferralToAddress[Referrals[UsersReferralCodes[addr]][i]]];
                 CurrLevelReffs[i] = Referrals[UsersReferralCodes[addr]][i];
             }
-            if(getWorth == false){
                 AmountToBePaid[0] = AmountToBePaid[0] * LevelPer[0] /10000;
                 AmountToBePaid[0] = AmountToBePaid[0] * 50 / 10000;
-            }
+            
             if(UsersLevel[addr]>1){
                 for(uint i = 0 ; i < UsersLevel[addr]-1; i++){
                     LevelPer[11] = getReffLen(CurrLevelReffs);
@@ -539,14 +513,12 @@ contract ROI_POOL{
                                 AmountToBePaid[i+1] += SelectedPackage[ReferralToAddress[tempArr[j]]];
                                 CurrLevelReffs[j] = tempArr[j];
                             }
-                        if(getWorth == false){
                             if(i > 9){
                                 AmountToBePaid[i+1] = AmountToBePaid[i+1] * 200 /10000;
                             }else{
                                 AmountToBePaid[i+1] = AmountToBePaid[i+1] * LevelPer[i+1] /10000;
                             }
                             AmountToBePaid[i+1] = AmountToBePaid[i+1] * 50 / 10000;
-                        }
                         delete tempArr;
                     }
                 }
