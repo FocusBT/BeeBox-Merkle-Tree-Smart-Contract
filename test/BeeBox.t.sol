@@ -184,6 +184,10 @@ contract TestBeeBox is Test {
         beebox.dailyROI();
         bal = beebox.UserBalanceByAddr(add);
         console.log("balance after 1st ROI: ", bal);
+
+        beebox.dailyROI();
+        bal = beebox.UserBalanceByAddr(add);
+        console.log("balance after 2nd ROI: ", bal);
     }
 
     function test_multiplePackages() public {
