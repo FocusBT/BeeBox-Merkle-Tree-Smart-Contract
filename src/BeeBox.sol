@@ -155,7 +155,7 @@ contract BeeBox {
             amount <= 5000 && amount >= 100,
             "You can not deposit more than $5000 and less than $100"
         );
-        // Token.transferFrom(msg.sender, address(this), amount * 10 ** 6); // transfering tokens to contract
+        Token.transferFrom(msg.sender, address(this), amount * 10 ** 6); // transfering tokens to contract
         if (UsersReferralCodes[msg.sender] != 0) {
             UserBalanceByAddr[msg.sender] += amount * 10 ** 6;
             InvestedAmount[msg.sender] += amount * 10 ** 6;
