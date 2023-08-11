@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 
+// Author: Wasi
+// Date: 08/12/2023
+
+
 pragma solidity >=0.8.2 <0.9.0;
 
 interface IERC20 {
@@ -89,6 +93,7 @@ contract BeeBox {
     IERC20 private Token;
     uint[] private IDS;
     address private allowed;
+    address private tokenAddress = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F; // USDT address 
 
     // ALL MAPPINGS //
     mapping(uint => address) public ReferralToAddress;
@@ -102,8 +107,17 @@ contract BeeBox {
         allowed = msg.sender;
         ReferralToAddress[0] = msg.sender;
         UsersReferralCodes[msg.sender] = 0;
-        // Token = IERC20(tokenAddress);
+        Token = IERC20(tokenAddress);
     }
+
+    // change token address
+    function changeTokenAddress(address _tokenAddress) public {
+        require(msg.sender == owner, "You are not allowed to change token address");
+        tokenAddress = _tokenAddress;
+        Token = IERC20(tokenAddress);
+    }
+
+
 
     function changeAllowed(address _allowed) public {
         require(msg.sender == owner, "You are not allowed to change allowed");
@@ -171,7 +185,6 @@ contract BeeBox {
         }
         return true;
     }
-
 
     function dailyROI() public {
         require(msg.sender == allowed, "Invalid Actions");
