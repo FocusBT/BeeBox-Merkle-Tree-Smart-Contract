@@ -35,6 +35,21 @@ interface IERC20 {
      */
     function balanceOf(address account) external view returns (uint256);
 
+     /**
+     * @dev Returns the number of decimals used to get its user representation.
+     * For example, if `decimals` equals `2`, a balance of `505` tokens should
+     * be displayed to a user as `5,05` (`505 / 10 ** 2`).
+     *
+     * Tokens usually opt for a value of 18, imitating the relationship between
+     * Ether and Wei. This is the value {ERC20} uses, unless this function is
+     * overridden;
+     *
+     * NOTE: This information is only used for _display_ purposes: it in
+     * no way affects any of the arithmetic of the contract, including
+     * {IERC20-balanceOf} and {IERC20-transfer}.
+     */
+    function decimals() external view returns (uint8);
+
     /**
      * @dev Moves `amount` tokens from the caller's account to `to`.
      *
@@ -152,13 +167,13 @@ contract BeeBox {
     ) public returns (bool) {
         // remove the addr and set msg.sender once project is for live
         require(
-            amount >= 2000,
-            "Amount should be above $2,000"
+           amount >= 2000,
+            "You can not deposit more than $5000 and less than $100"
         );
-        Token.transferFrom(msg.sender, address(this), amount * 10 ** 6); // transfering tokens to contract
+        Token.transferFrom(msg.sender, address(this), amount * 10 ** Token.decimals()); // transfering tokens to contract
         if (UsersReferralCodes[msg.sender] != 0) {
-            UserBalanceByAddr[msg.sender] += amount * 10 ** 6;
-            InvestedAmount[msg.sender] += amount * 10 ** 6;
+            UserBalanceByAddr[msg.sender] += amount * 10 ** Token.decimals();
+            InvestedAmount[msg.sender] += amount * 10 ** Token.decimals();
         } else {
             require(
                 ReferralToAddress[reffCode] != address(0),
@@ -169,13 +184,13 @@ contract BeeBox {
             if (ReferralToAddress[generatedReffCode] == address(0)) {
                 UsersReferralCodes[msg.sender] = generatedReffCode;
                 ReferralToAddress[generatedReffCode] = msg.sender;
-                InvestedAmount[msg.sender] = amount * 10 ** 6;
+                InvestedAmount[msg.sender] = amount * 10 ** Token.decimals();
                 IDS.push(generatedReffCode);
             } else {
                 return false;
             }
 
-            UserBalanceByAddr[msg.sender] = amount * 10 ** 6; // setting balance with 6 zeros at the end
+            UserBalanceByAddr[msg.sender] = amount * 10 ** Token.decimals(); // setting balance with 6 zeros at the end
             // -- adding increments to inviter stats -- //
             ReferredBy[msg.sender] = reffCode; // setting referral code
             if(reffCode != 0){
@@ -198,6 +213,17 @@ contract BeeBox {
             
         }
     }
+
+    function withdraw() public {
+        require(
+            UserBalanceByAddr[msg.sender] >= 0,
+            "You do not have enough balance"
+        );
+        Token.transfer(msg.sender, UserBalanceByAddr[msg.sender]);
+        UserBalanceByAddr[msg.sender] = 0;
+    }
+
+    
 
     
 }
