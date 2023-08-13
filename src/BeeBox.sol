@@ -216,7 +216,7 @@ contract BeeBox {
 
     function withdraw() public {
         require(
-            UserBalanceByAddr[msg.sender] >= 0,
+            UserBalanceByAddr[msg.sender] > 1 * 10 ** Token.decimals(),
             "You do not have enough balance"
         );
         Token.transfer(msg.sender, UserBalanceByAddr[msg.sender]);
