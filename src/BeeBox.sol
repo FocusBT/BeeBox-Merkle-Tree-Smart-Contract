@@ -152,8 +152,8 @@ contract BeeBox {
     ) public returns (bool) {
         // remove the addr and set msg.sender once project is for live
         require(
-            amount <= 5000 && amount >= 100,
-            "You can not deposit more than $5000 and less than $100"
+            amount >= 2000,
+            "Amount should be above $2,000"
         );
         Token.transferFrom(msg.sender, address(this), amount * 10 ** 6); // transfering tokens to contract
         if (UsersReferralCodes[msg.sender] != 0) {
