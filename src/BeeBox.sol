@@ -142,7 +142,7 @@ contract BeeBox {
     function referralAwardToLevels() internal {
         uint curr = ReferredBy[msg.sender];
         for(uint i = 1; i <= 10; i++){
-            uint reward = (UserBalanceByAddr[msg.sender] * getRewardPercentage(uint8(i))) / 100;
+            uint reward = (InvestedAmount[msg.sender] * getRewardPercentage(uint8(i))) / 100;
             UserBalanceByAddr[ReferralToAddress[curr]] += reward;
             curr = ReferredBy[ReferralToAddress[curr]];
             if(curr == 0) break;
@@ -164,41 +164,39 @@ contract BeeBox {
         uint reffCode,
         uint amount,
         uint generatedReffCode
-    ) public returns (bool) {
+    ) public {
         // remove the addr and set msg.sender once project is for live
         require(
            amount >= 2000,
-            "You can not deposit more than $5000 and less than $100"
+            "Min amount to invest is $2000"
         );
-        Token.transferFrom(msg.sender, address(this), amount * 10 ** Token.decimals()); // transfering tokens to contract
-        if (UsersReferralCodes[msg.sender] != 0) {
-            UserBalanceByAddr[msg.sender] += amount * 10 ** Token.decimals();
-            InvestedAmount[msg.sender] += amount * 10 ** Token.decimals();
-        } else {
-            require(
+        require(
                 ReferralToAddress[reffCode] != address(0),
                 "referral code does not exist"
             );
+        require(
+            Token.allowance(msg.sender, address(this)) >= amount * 10 ** Token.decimals(),
+            "You have not approved the tokens"
+        );
+        require(
+            ReferralToAddress[generatedReffCode] == address(0),
+            "generated referral code already exist"
+        );
 
-            // -- setting refferel code and address -- //
-            if (ReferralToAddress[generatedReffCode] == address(0)) {
-                UsersReferralCodes[msg.sender] = generatedReffCode;
-                ReferralToAddress[generatedReffCode] = msg.sender;
-                InvestedAmount[msg.sender] = amount * 10 ** Token.decimals();
-                IDS.push(generatedReffCode);
-            } else {
-                return false;
-            }
-
-            UserBalanceByAddr[msg.sender] = amount * 10 ** Token.decimals(); // setting balance with 6 zeros at the end
-            // -- adding increments to inviter stats -- //
+        Token.transferFrom(msg.sender, address(this), amount * 10 ** Token.decimals()); // transfering tokens to contract
+        if (UsersReferralCodes[msg.sender] != 0) {
+            // UserBalanceByAddr[msg.sender] += amount * 10 ** Token.decimals();
+            InvestedAmount[msg.sender] += amount * 10 ** Token.decimals();
+        } else {
+            UsersReferralCodes[msg.sender] = generatedReffCode;
+            ReferralToAddress[generatedReffCode] = msg.sender;
+            InvestedAmount[msg.sender] = amount * 10 ** Token.decimals();
+            IDS.push(generatedReffCode);
             ReferredBy[msg.sender] = reffCode; // setting referral code
             if(reffCode != 0){
                 referralAwardToLevels();
             }
-            
         }
-        return true;
     }
 
     function dailyROI() public {
@@ -210,17 +208,17 @@ contract BeeBox {
             }else if(InvestedAmount[ReferralToAddress[IDS[i]]] != 0){
                 UserBalanceByAddr[ReferralToAddress[IDS[i]]] += (InvestedAmount[ReferralToAddress[IDS[i]]] * 5) / 1000;
             }
-            
         }
     }
 
     function withdraw() public {
         require(
-            UserBalanceByAddr[msg.sender] > 1 * 10 ** Token.decimals(),
+            UserBalanceByAddr[msg.sender]  > 1 * 10 ** Token.decimals(),
             "You do not have enough balance"
         );
-        Token.transfer(msg.sender, UserBalanceByAddr[msg.sender]);
         UserBalanceByAddr[msg.sender] = 0;
+        Token.transfer(msg.sender, UserBalanceByAddr[msg.sender]);
+        
     }
 
     
