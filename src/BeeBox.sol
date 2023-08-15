@@ -132,8 +132,6 @@ contract BeeBox {
         Token = IERC20(tokenAddress);
     }
 
-
-
     function changeAllowed(address _allowed) public {
         require(msg.sender == owner, "You are not allowed to change allowed");
         allowed = _allowed;
@@ -178,16 +176,16 @@ contract BeeBox {
             Token.allowance(msg.sender, address(this)) >= amount * 10 ** Token.decimals(),
             "You have not approved the tokens"
         );
-        require(
-            ReferralToAddress[generatedReffCode] == address(0),
-            "generated referral code already exist"
-        );
+        
 
         Token.transferFrom(msg.sender, address(this), amount * 10 ** Token.decimals()); // transfering tokens to contract
         if (UsersReferralCodes[msg.sender] != 0) {
-            // UserBalanceByAddr[msg.sender] += amount * 10 ** Token.decimals();
             InvestedAmount[msg.sender] += amount * 10 ** Token.decimals();
         } else {
+            require(
+            ReferralToAddress[generatedReffCode] == address(0),
+            "generated referral code already exist"
+            );
             UsersReferralCodes[msg.sender] = generatedReffCode;
             ReferralToAddress[generatedReffCode] = msg.sender;
             InvestedAmount[msg.sender] = amount * 10 ** Token.decimals();
@@ -218,7 +216,6 @@ contract BeeBox {
         );
         UserBalanceByAddr[msg.sender] = 0;
         Token.transfer(msg.sender, UserBalanceByAddr[msg.sender]);
-        
     }
 
     
