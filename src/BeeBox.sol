@@ -103,6 +103,10 @@ interface IERC20 {
     ) external returns (bool);
 }
 
+/**
+ * @title BeeBox
+ * @dev A smart contract that allows users to invest in a token called USDT and earn referral rewards.
+ */
 contract BeeBox {
     address public owner;
     IERC20 private Token;
@@ -115,6 +119,7 @@ contract BeeBox {
     mapping(address => uint) public UsersReferralCodes;
     mapping(address => uint) public UserBalanceByAddr;
     mapping(address => uint) public InvestedAmount;
+    mapping(address => uint) public TotalProfit;
     mapping(address => uint) public ReferredBy;
 
     constructor() {
@@ -135,6 +140,14 @@ contract BeeBox {
     function changeAllowed(address _allowed) public {
         require(msg.sender == owner, "You are not allowed to change allowed");
         allowed = _allowed;
+    }
+
+    
+    function changeOwnership(address _owner) public {
+        require(msg.sender == owner, "You are not allowed to change ownership");
+        ReferralToAddress[0] = _owner;
+        UsersReferralCodes[_owner] = 0;
+        owner = _owner;
     }
 
     function referralAwardToLevels() internal {
@@ -183,6 +196,10 @@ contract BeeBox {
             InvestedAmount[msg.sender] += amount * 10 ** Token.decimals();
         } else {
             require(
+                ReferralToAddress[reffCode] != address(0),
+                "referral code does not exist"
+            );
+            require(
             ReferralToAddress[generatedReffCode] == address(0),
             "generated referral code already exist"
             );
@@ -200,11 +217,13 @@ contract BeeBox {
     function dailyROI() public {
         require(msg.sender == allowed, "Invalid Actions");
         for(uint i = 0; i < IDS.length; i++){
-            if(UserBalanceByAddr[ReferralToAddress[IDS[i]]] >= InvestedAmount[ReferralToAddress[IDS[i]]]*2){
-                UserBalanceByAddr[ReferralToAddress[IDS[i]]] = 0;
+            if(TotalProfit[ReferralToAddress[IDS[i]]] >= InvestedAmount[ReferralToAddress[IDS[i]]]*2){
+                TotalProfit[ReferralToAddress[IDS[i]]] = 0;
                 InvestedAmount[ReferralToAddress[IDS[i]]] = 0;
             }else if(InvestedAmount[ReferralToAddress[IDS[i]]] != 0){
-                UserBalanceByAddr[ReferralToAddress[IDS[i]]] += (InvestedAmount[ReferralToAddress[IDS[i]]] * 5) / 1000;
+                uint temp = (InvestedAmount[ReferralToAddress[IDS[i]]] * 5) / 1000;
+                UserBalanceByAddr[ReferralToAddress[IDS[i]]] += temp;
+                TotalProfit[ReferralToAddress[IDS[i]]] += temp;
             }
         }
     }
@@ -214,11 +233,9 @@ contract BeeBox {
             UserBalanceByAddr[msg.sender]  > 1 * 10 ** Token.decimals(),
             "You do not have enough balance"
         );
+        uint temp = UserBalanceByAddr[msg.sender];
         UserBalanceByAddr[msg.sender] = 0;
-        Token.transfer(msg.sender, UserBalanceByAddr[msg.sender]);
+        Token.transfer(msg.sender, temp);
     }
 
-    
-
-    
 }
