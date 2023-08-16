@@ -1,205 +1,270 @@
-// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "../src/BeeBox.sol";
-
+import "../src/MyToken.sol";
 
 contract TestBeeBox is Test {
     BeeBox public beebox;
+    MyToken public mytoken;
+    address public owner;
+    struct User {
+        uint investedAmount;
+        uint totalProfit;
+        uint balance;
+        address referredBy;
+        uint lastInvestmentTime;
+        uint lastWithdrawTime;
+    }
 
     address addr1 = vm.addr(1);
-        address addr2 = vm.addr(2);
-        address addr3 = vm.addr(3);
-        address addr4 = vm.addr(4);
-        address addr5 = vm.addr(5);
-        address addr6 = vm.addr(6);
-        address addr7 = vm.addr(7);
-        address addr8 = vm.addr(8);
-        address addr9 = vm.addr(9);
-        address addr10 = vm.addr(10);
-        address addr11 = vm.addr(11);
+    address addr2 = vm.addr(2);
+    address addr3 = vm.addr(3);
+    address addr4 = vm.addr(4);
+    address addr5 = vm.addr(5);
+    address addr6 = vm.addr(6);
+    address addr7 = vm.addr(7);
+    address addr8 = vm.addr(8);
+    address addr9 = vm.addr(9);
+    address addr10 = vm.addr(10);
+    address addr11 = vm.addr(11);
+
+    address public tokenAddr;
+    address public contractAddr;
+
 
     function setUp() public {
-        console.log("owner", msg.sender);
         beebox = new BeeBox();
-        // console.log("owner: %s", msg.sender);
-        // console.log("address: %s", addr1);
+        contractAddr = address(beebox);
+        owner = msg.sender;
+        mytoken = new MyToken();
+        tokenAddr = address(mytoken);
+
+
     }
 
-    function test_levels() public {
-        vm.prank(addr1);
-        beebox.Invest(0, 100, 1);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
+    // function test_invest() public {
+    //     mytoken.mint(addr1, 2000 * 10 ** 18);
+    //     mytoken.mint(addr2, 2000 * 10 ** 18);
+    //     mytoken.mint(addr3, 2000 * 10 ** 18);
+    //     mytoken.mint(addr4, 2000 * 10 ** 18);
+    //     mytoken.mint(addr5, 2000 * 10 ** 18);
+    //     mytoken.mint(addr6, 2000 * 10 ** 18);
+    //     beebox.changeTokenAddress(tokenAddr);
+    //     beebox.changeOwnership(owner);
+
+
+    //     vm.prank(addr1);
+    //     mytoken.approve(contractAddr, 2000 * 10 ** 18);
+    //     vm.prank(addr1);
+    //     beebox.Invest(2000, owner);
+
+    //     (uint a,, , address d, uint e, uint f) = beebox.Users(addr1);
+    //     // console.log("for user: ", addr1);
+    //     // console.log( "investedAmount", a);
+    //     // console.log( "referredBy", d);
+    //     // console.log( "lastWithdraw", f);
+    //     // console.log( "lastInvested", e);
+
+    //     vm.prank(addr2);
+    //     mytoken.approve(contractAddr, 2000 * 10 ** 18);
+    //     vm.prank(addr2);
+    //     beebox.Invest(2000, addr1);
+
+    //     (, uint fg , uint ghd , , , ) = beebox.Users(addr1);
+    //     console.log(ghd);
+
+    //     (, fg , ghd , , , ) = beebox.Users(addr2);
+    //     console.log(ghd);
+
+
         
-        console.log("After 1st user joinning");
-
-        vm.prank(addr2);
-        beebox.Invest(1, 100, 2);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
         
-        console.log("After 2nd user joinning");
+        
+    //     (a,, , d, e, f) = beebox.Users(addr2);
+    //     // console.log("for user: ", addr2);
+    //     // console.log( "investedAmount", a);
+    //     // console.log( "referredBy", d);
+    //     // console.log( "lastWithdraw", f);
+    //     // console.log( "lastInvested", e);
 
-        vm.prank(addr3);
-        beebox.Invest(2, 100, 3);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
-        console.log("balance of user 3: ", beebox.UserBalanceByAddr(addr3));
+    //     vm.prank(addr3);
+    //     mytoken.approve(contractAddr, 2000 * 10 ** 18);
+    //     vm.prank(addr3);
+    //     beebox.Invest(2000, addr2);
 
-        console.log("After 3rd user joinning");
+    //     (, fg , ghd , , , ) = beebox.Users(addr1);
+    //     console.log(ghd);
+    //     (, fg , ghd , , , ) = beebox.Users(addr2);
+    //     console.log(ghd);
+    //     (, fg , ghd , , , ) = beebox.Users(addr3);
+    //     console.log(ghd);
 
-        vm.prank(addr4);
-        beebox.Invest(3, 100, 4);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
-        console.log("balance of user 3: ", beebox.UserBalanceByAddr(addr3));
-        console.log("balance of user 4: ", beebox.UserBalanceByAddr(addr4));
+    //     vm.prank(addr4);
+    //     mytoken.approve(contractAddr, 2000 * 10 ** 18);
+    //     vm.prank(addr4);
+    //     beebox.Invest(2000, addr3);
+    //     (, fg , ghd , , , ) = beebox.Users(addr1);
+    //     console.log(ghd);
+    //     (, fg , ghd , , , ) = beebox.Users(addr2);
+    //     console.log(ghd);
+    //     (, fg , ghd , , , ) = beebox.Users(addr3);
+    //     console.log(ghd);
+    //     (, fg , ghd , , , ) = beebox.Users(addr4);
+    //     console.log(ghd);
 
-        console.log("After 4th user joinning");
+    //     vm.prank(addr5);
+    //     mytoken.approve(contractAddr, 2000 * 10 ** 18);
+    //     vm.prank(addr5);
+    //     beebox.Invest(2000, addr4);
 
-        vm.prank(addr5);
-        beebox.Invest(4, 100, 5);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
-        console.log("balance of user 3: ", beebox.UserBalanceByAddr(addr3));
-        console.log("balance of user 4: ", beebox.UserBalanceByAddr(addr4));
-        console.log("balance of user 5: ", beebox.UserBalanceByAddr(addr5));
+    //     (, fg , ghd , , , ) = beebox.Users(addr1);
+    //     console.log(ghd);
+    //     (, fg , ghd , , , ) = beebox.Users(addr2);
+    //     console.log(ghd);
+    //     (, fg , ghd , , , ) = beebox.Users(addr3);
+    //     console.log(ghd);
+    //     (, fg , ghd , , , ) = beebox.Users(addr4);
+    //     console.log(ghd);
+    //     (, fg , ghd , , , ) = beebox.Users(addr5);
+    //     console.log(ghd);
 
-        console.log("After 5th user joinning");
 
-        vm.prank(addr6);
-        beebox.Invest(5, 100, 6);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
-        console.log("balance of user 3: ", beebox.UserBalanceByAddr(addr3));
-        console.log("balance of user 4: ", beebox.UserBalanceByAddr(addr4));
-        console.log("balance of user 5: ", beebox.UserBalanceByAddr(addr5));
-        console.log("balance of user 6: ", beebox.UserBalanceByAddr(addr6));
-
-        console.log("After 6th user joinning");
-
-        vm.prank(addr7);
-        beebox.Invest(6, 100, 7);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
-        console.log("balance of user 3: ", beebox.UserBalanceByAddr(addr3));
-        console.log("balance of user 4: ", beebox.UserBalanceByAddr(addr4));
-        console.log("balance of user 5: ", beebox.UserBalanceByAddr(addr5));
-        console.log("balance of user 6: ", beebox.UserBalanceByAddr(addr6));
-        console.log("balance of user 7: ", beebox.UserBalanceByAddr(addr7));
-
-        console.log("After 7th user joinning");
-
-        vm.prank(addr8);
-        beebox.Invest(7, 100, 8);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
-        console.log("balance of user 3: ", beebox.UserBalanceByAddr(addr3));
-        console.log("balance of user 4: ", beebox.UserBalanceByAddr(addr4));
-        console.log("balance of user 5: ", beebox.UserBalanceByAddr(addr5));
-        console.log("balance of user 6: ", beebox.UserBalanceByAddr(addr6));
-        console.log("balance of user 7: ", beebox.UserBalanceByAddr(addr7));
-        console.log("balance of user 8: ", beebox.UserBalanceByAddr(addr8));
-
-        console.log("After 8th user joinning");
-
-        vm.prank(addr9);
-        beebox.Invest(8, 100, 9);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
-        console.log("balance of user 3: ", beebox.UserBalanceByAddr(addr3));
-        console.log("balance of user 4: ", beebox.UserBalanceByAddr(addr4));
-        console.log("balance of user 5: ", beebox.UserBalanceByAddr(addr5));
-        console.log("balance of user 6: ", beebox.UserBalanceByAddr(addr6));
-        console.log("balance of user 7: ", beebox.UserBalanceByAddr(addr7));
-        console.log("balance of user 8: ", beebox.UserBalanceByAddr(addr8));
-        console.log("balance of user 9: ", beebox.UserBalanceByAddr(addr9));
-
-        console.log("After 9th user joinning");
-
-        vm.prank(addr10);
-        beebox.Invest(9, 100, 10);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
-        console.log("balance of user 3: ", beebox.UserBalanceByAddr(addr3));
-        console.log("balance of user 4: ", beebox.UserBalanceByAddr(addr4));
-        console.log("balance of user 5: ", beebox.UserBalanceByAddr(addr5));
-        console.log("balance of user 6: ", beebox.UserBalanceByAddr(addr6));
-        console.log("balance of user 7: ", beebox.UserBalanceByAddr(addr7));
-        console.log("balance of user 8: ", beebox.UserBalanceByAddr(addr8));
-        console.log("balance of user 9: ", beebox.UserBalanceByAddr(addr9));
-        console.log("balance of user 10: ", beebox.UserBalanceByAddr(addr10));
-
-        console.log("After 10th user joinning");
-
-        vm.prank(addr11);
-        beebox.Invest(10, 100, 11);
-        console.log("balance of user 1: ", beebox.UserBalanceByAddr(addr1));
-        console.log("balance of user 2: ", beebox.UserBalanceByAddr(addr2));
-        console.log("balance of user 3: ", beebox.UserBalanceByAddr(addr3));
-        console.log("balance of user 4: ", beebox.UserBalanceByAddr(addr4));
-        console.log("balance of user 5: ", beebox.UserBalanceByAddr(addr5));
-        console.log("balance of user 6: ", beebox.UserBalanceByAddr(addr6));
-        console.log("balance of user 7: ", beebox.UserBalanceByAddr(addr7));
-        console.log("balance of user 8: ", beebox.UserBalanceByAddr(addr8));
-        console.log("balance of user 9: ", beebox.UserBalanceByAddr(addr9));
-        console.log("balance of user 10: ", beebox.UserBalanceByAddr(addr10));
-        console.log("balance of user 11: ", beebox.UserBalanceByAddr(addr11));
-
-    }   
+        
+    //     // uint amount =  beebox.Users(addr1).investedAmount;
+    //     // console.log(beebox.Users(addr1).investedAmount);
+    // }
 
     function test_ROI() public {
+        mytoken.mint(addr1, 2000 * 10 ** 18);
+        mytoken.mint(addr2, 2000 * 10 ** 18);
+        mytoken.mint(addr3, 2000 * 10 ** 18);
+        mytoken.mint(addr4, 2000 * 10 ** 18);
+        mytoken.mint(addr5, 2000 * 10 ** 18);
+        mytoken.mint(contractAddr, 6000 * 10 ** 18);
+        beebox.changeTokenAddress(tokenAddr);
+        beebox.changeOwnership(owner);
+
+        vm.warp(0); 
+        vm.prank(addr1);
+        mytoken.approve(contractAddr, 6000 * 10 ** 18);
+        vm.prank(addr1);
+        beebox.Invest(2000, owner);
+
+        
+        (uint a, uint b , address c, uint d) = beebox.Users(addr1);
+        console.log("for user: ", addr1);
+        console.log( "investedAmount", a);
+        console.log("totalProfit", b);
+        console.log( "referredBy", c);
+        console.log( "lastWithdraw", d);
+
+        vm.warp(17280000); 
+
+        vm.prank(addr1);
+        beebox.withdraw();
+
+        console.log(mytoken.balanceOf(addr1));
+
+        (a, b , c, d) = beebox.Users(addr1);
+        console.log("for user: ", addr1);
+        console.log( "investedAmount", a);
+        console.log("totalProfit", b);
+        console.log( "referredBy", c);
+        console.log( "lastWithdraw", d);
+
+        vm.warp(87280000);
+
+        vm.prank(addr1);
+        beebox.withdraw();
+        (a, b , c, d) = beebox.Users(addr1);
+        console.log("for user: ", addr1);
+        console.log( "investedAmount", a);
+        console.log("totalProfit", b);
+        console.log( "referredBy", c);
+        console.log( "lastWithdraw", d);
+        console.log(mytoken.balanceOf(addr1));
+
+        vm.prank(addr1);
+        beebox.Invest(2000, address(0));
+
+        (a, b , c, d) = beebox.Users(addr1);
+        console.log("for user: ", addr1);
+        console.log( "investedAmount", a);
+        console.log("totalProfit", b);
+        console.log( "referredBy", c);
+        console.log( "lastWithdraw", d);
+        console.log(mytoken.balanceOf(addr1));
+        
+        vm.prank(addr1);
+        beebox.Invest(2000, address(0));
+
+        vm.warp(104560000); 
+        vm.prank(addr1);
+        beebox.withdraw();
+        (a, b , c, d) = beebox.Users(addr1);
+        console.log("for user: ", addr1);
+        console.log( "investedAmount", a);
+        console.log("totalProfit", b);
+        console.log( "referredBy", c);
+        console.log( "lastWithdraw", d);
+        console.log(mytoken.balanceOf(addr1));
+
+        vm.warp(204560000); 
+
+        vm.prank(addr1);
+        beebox.withdraw();
+        (a, b , c, d) = beebox.Users(addr1);
+        console.log("for user: ", addr1);
+        console.log( "investedAmount", a);
+        console.log("totalProfit", b);
+        console.log( "referredBy", c);
+        console.log( "lastWithdraw", d);
+        console.log(mytoken.balanceOf(addr1));
+        console.log(mytoken.balanceOf(tokenAddr));
+
+
         
 
-        console.log("owner: ", msg.sender);
-        address add = vm.addr(7);
-        vm.prank(add);
-        beebox.Invest(0, 100, 1);
-        uint bal = beebox.UserBalanceByAddr(add);
-        console.log("balance after package: ", bal);
 
-        for(uint i = 0; i < 199; i++) {
-            beebox.dailyROI();
-        }
+// 2000000000000000000000
+        // console.log(currentProfit);
 
-        bal = beebox.UserBalanceByAddr(add);
-        console.log("balance after 199 times ROI: ", bal);
+        // uint256 RATE_PER_SECOND = 578703; // 0.00000005787% * 1e8
+        // uint256 DECIMALS = 1e13; // Scaling factor
 
-        beebox.dailyROI();
-        bal = beebox.UserBalanceByAddr(add);
-        console.log("balance after 200 times ROI: ", bal);
+        // uint amount = 1000 * 10 ** 18;
+        // uint secondsElapsed = 86400;
 
-        beebox.dailyROI();
-        bal = beebox.UserBalanceByAddr(add);
-        console.log("balance after 201 times ROI: ", bal);
-        add = vm.addr(7);
-        vm.prank(add);
-        beebox.Invest(0, 100, 1);
+        // // Calculate the profit as (amount * rate * time) / scaling factor
+        // // uint _amount = amount * 10 ** 18;
+        // uint256 totalProfit = (amount * RATE_PER_SECOND * secondsElapsed) / DECIMALS;
+    
+        
+        // console.log(totalProfit);
 
-        bal = beebox.UserBalanceByAddr(add);
-        console.log("balance after new package: ", bal);
+        // 4999968000000000000
+        // 4999993920000000000
+        // 9999987840000000000
+        // 1999997568000000000000
 
-        beebox.dailyROI();
-        bal = beebox.UserBalanceByAddr(add);
-        console.log("balance after 1st ROI: ", bal);
 
-        beebox.dailyROI();
-        bal = beebox.UserBalanceByAddr(add);
-        console.log("balance after 2nd ROI: ", bal);
+        // vm.prank(addr2);
+        // mytoken.approve(contractAddr, 2000 * 10 ** 18);
+        // vm.prank(addr2);
+        // beebox.Invest(2000, addr1);
+
+        // (, uint fg , uint ghd , , , ) = beebox.Users(addr1);
+        // console.log(ghd);
+
+        // (, fg , ghd , , , ) = beebox.Users(addr2);
+        // console.log(ghd);
+
+        
+
+
     }
 
-    function test_multiplePackages() public {
-        console.log("owner: ", msg.sender);
-        address add = vm.addr(12);
-        vm.prank(add);
-        beebox.Invest(0, 100, 1);
-        console.log(beebox.UserBalanceByAddr(add));
-        vm.prank(add);
-        beebox.Invest(0, 100, 1);
-        
-        console.log(beebox.UserBalanceByAddr(add));
-        
-    }
+
 }
