@@ -110,26 +110,66 @@ interface IERC20 {
 contract BeeBox {
     address public owner;
     IERC20 private Token;
-    uint[] private IDS;
-    address private allowed;
     address private tokenAddress = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F; // USDT address 
 
-    // ALL MAPPINGS //
-    mapping(uint => address) public ReferralToAddress;
-    mapping(address => uint) public UsersReferralCodes;
-    mapping(address => uint) public UserBalanceByAddr;
-    mapping(address => uint) public InvestedAmount;
-    mapping(address => uint) public TotalProfit;
-    mapping(address => uint) public ReferredBy;
+    struct User {
+        uint investedAmount;
+        uint totalProfit;
+        uint balance;
+        address referredBy;
+        uint lastInvestmentTime;
+        uint lastWithdrawTime;
+    }
+
+    mapping(address => User) public Users;
+
+
 
     constructor() {
         owner = msg.sender;
-        allowed = msg.sender;
-        ReferralToAddress[0] = msg.sender;
-        UsersReferralCodes[msg.sender] = 0;
+        Users[msg.sender].referredBy = address(0x1);
         Token = IERC20(tokenAddress);
     }
 
+
+    function Invest(uint amount, address reffBy) public {
+         require(
+           amount >= 2000,
+            "Min amount to invest is $2000"
+        );
+        require(
+            Token.allowance(msg.sender, address(this)) >= amount * 10 ** Token.decimals(),
+            "You have not approved the tokens"
+        );
+        require(Token.balanceOf(msg.sender)>= amount * 10 ** Token.decimals(), "You dont have enough tokens");
+
+        if(Users[msg.sender].referredBy == address(0)){
+            require(Users[reffBy].referredBy != address(0), "Invalid Referral");
+            Users[msg.sender].investedAmount = amount * 10 ** Token.decimals();
+            Users[msg.sender].referredBy = reffBy;
+            Users[msg.sender].lastInvestmentTime = block.timestamp;
+            Users[msg.sender].lastWithdrawTime = block.timestamp;
+        }else{
+            Users[msg.sender].investedAmount += amount * 10 ** Token.decimals();
+            // call claim current profit
+            Users[msg.sender].lastInvestmentTime = block.timestamp;
+            Users[msg.sender].lastWithdrawTime = block.timestamp;
+        }
+        Token.transferFrom(msg.sender, address(this), amount * 10 ** Token.decimals()); // transfering tokens to contract
+        referralAwardToLevels(amount*10**Token.decimals());
+    }
+
+    function referralAwardToLevels(uint amount) internal {
+        address curr = Users[msg.sender].referredBy;
+        for(uint i = 1; i <= 10; i++){
+            if(curr == address(0) || curr == owner) break;
+            uint reward = (amount * getRewardPercentage(uint8(i))) / 100;
+            Users[curr].balance += reward;
+            curr = Users[curr].referredBy;
+        }
+    }
+    
+    
     // change token address
     function changeTokenAddress(address _tokenAddress) public {
         require(msg.sender == owner, "You are not allowed to change token address");
@@ -137,28 +177,14 @@ contract BeeBox {
         Token = IERC20(tokenAddress);
     }
 
-    function changeAllowed(address _allowed) public {
-        require(msg.sender == owner, "You are not allowed to change allowed");
-        allowed = _allowed;
-    }
-
+    
     
     function changeOwnership(address _owner) public {
         require(msg.sender == owner, "You are not allowed to change ownership");
-        ReferralToAddress[0] = _owner;
-        UsersReferralCodes[_owner] = 0;
         owner = _owner;
     }
 
-    function referralAwardToLevels() internal {
-        uint curr = ReferredBy[msg.sender];
-        for(uint i = 1; i <= 10; i++){
-            uint reward = (InvestedAmount[msg.sender] * getRewardPercentage(uint8(i))) / 100;
-            UserBalanceByAddr[ReferralToAddress[curr]] += reward;
-            curr = ReferredBy[ReferralToAddress[curr]];
-            if(curr == 0) break;
-        }
-    }
+    
 
     
 
@@ -171,71 +197,36 @@ contract BeeBox {
         return 0; // Default to 0% for unsupported levels
     }
 
-    function Invest(
-        uint reffCode,
-        uint amount,
-        uint generatedReffCode
-    ) public {
-        // remove the addr and set msg.sender once project is for live
-        require(
-           amount >= 2000,
-            "Min amount to invest is $2000"
-        );
-        require(
-                ReferralToAddress[reffCode] != address(0),
-                "referral code does not exist"
-            );
-        require(
-            Token.allowance(msg.sender, address(this)) >= amount * 10 ** Token.decimals(),
-            "You have not approved the tokens"
-        );
-        
-
-        Token.transferFrom(msg.sender, address(this), amount * 10 ** Token.decimals()); // transfering tokens to contract
-        if (UsersReferralCodes[msg.sender] != 0) {
-            InvestedAmount[msg.sender] += amount * 10 ** Token.decimals();
-        } else {
-            require(
-                ReferralToAddress[reffCode] != address(0),
-                "referral code does not exist"
-            );
-            require(
-            ReferralToAddress[generatedReffCode] == address(0),
-            "generated referral code already exist"
-            );
-            UsersReferralCodes[msg.sender] = generatedReffCode;
-            ReferralToAddress[generatedReffCode] = msg.sender;
-            InvestedAmount[msg.sender] = amount * 10 ** Token.decimals();
-            IDS.push(generatedReffCode);
-            ReferredBy[msg.sender] = reffCode; // setting referral code
-            if(reffCode != 0){
-                referralAwardToLevels();
-            }
-        }
-    }
-
-    function dailyROI() public {
-        require(msg.sender == allowed, "Invalid Actions");
-        for(uint i = 0; i < IDS.length; i++){
-            if(TotalProfit[ReferralToAddress[IDS[i]]] >= InvestedAmount[ReferralToAddress[IDS[i]]]*2){
-                TotalProfit[ReferralToAddress[IDS[i]]] = 0;
-                InvestedAmount[ReferralToAddress[IDS[i]]] = 0;
-            }else if(InvestedAmount[ReferralToAddress[IDS[i]]] != 0){
-                uint temp = (InvestedAmount[ReferralToAddress[IDS[i]]] * 5) / 1000;
-                UserBalanceByAddr[ReferralToAddress[IDS[i]]] += temp;
-                TotalProfit[ReferralToAddress[IDS[i]]] += temp;
-            }
-        }
-    }
+    
 
     function withdraw() public {
+        uint calculateAmount = getCurrentProfit();
         require(
-            UserBalanceByAddr[msg.sender]  > 1 * 10 ** Token.decimals(),
+            calculateAmount > 0,
             "You do not have enough balance"
         );
-        uint temp = UserBalanceByAddr[msg.sender];
-        UserBalanceByAddr[msg.sender] = 0;
-        Token.transfer(msg.sender, temp);
+        
+        Token.transfer(msg.sender, calculateAmount);
+    }
+
+    function getCurrentProfit() view public returns(uint) {
+    address userAddress = msg.sender;
+    User storage user = Users[userAddress];
+
+    // Calculate time passed since last withdrawal
+    uint currentTime = block.timestamp;
+    uint lastWithdrawTime = user.lastWithdrawTime;
+    uint timePassed = currentTime - lastWithdrawTime;
+
+    // Calculate profit percentage per second (0.00000578703%)
+    uint profitPercentagePerSecond = 578703; // (0.00000578703 * 10^8)
+
+    // Calculate profit based on time and invested amount
+    uint investedAmount = user.investedAmount;
+    uint profitPerSecond = (investedAmount * profitPercentagePerSecond) / 10**10; // Considering 18 decimal places
+    uint totalProfit = profitPerSecond * timePassed;
+
+    return totalProfit;
     }
 
 }
