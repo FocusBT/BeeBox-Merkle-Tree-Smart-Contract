@@ -39,6 +39,7 @@ contract BeeBox {
         );
 
         if(Users[msg.sender].referredBy == address(0)){
+            require(reffBy != msg.sender, "Invalid Referral.");
             require(Users[reffBy].referredBy != address(0), "Invalid Referral");
             Users[msg.sender].investedAmount = amount * 10 ** 18;
             Users[msg.sender].referredBy = reffBy;
